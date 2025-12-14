@@ -1,0 +1,65 @@
+---
+title: "Predicting QB Drafts"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+# Load data
+
+
+
+# Inspect
+str(QB)
+summary(QB)
+
+```
+
+You can add options to executable code like this
+
+```{r}
+# Convert categorical variables to factors
+QB$RD_PICKED <- as.factor(QB$RD_PICKED)
+QB$CONF <- as.factor(QB$CONF)
+
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+```{r}
+anova_result <- aov(RATE ~ RD_PICKED, data = QB)
+summary(anova_result)
+```
+
+```{r}
+TukeyHSD(anova_result)
+
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(QB, aes(x = RD_PICKED, y = RATE, fill = CONF)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "QB Performance by Draft Round and Conference")
+
+```
+
+```{r}
+# Normality
+shapiro.test(residuals(anova_result))
+
+# Homogeneity of variance
+library(car)
+leveneTest(RATE ~ RD_PICKED, data = QB)
+
+```
