@@ -1,0 +1,68 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+qb_index <- read.csv("/Users/lanhock/Downloads/qb_index_no_tier.csv")
+
+#Conference/School Props
+prop.table(table(qb_index$conf)) %>% sort(decreasing = TRUE)
+prop.table(table(qb_index$college)) %>% sort(decreasing = TRUE)
+```
+```{r}
+#Height Distributuion
+hist(qb_index$height,
+     main = "Distribution of QB Heights",
+     xlab = "Height (inches)",
+     col = "lightblue",
+     border = "white")
+```
+```{r}
+#Weight Distribution
+hist(qb_index$weight,
+     main = "Distribution of QB Weights",
+     xlab = "Weight (lbs)",
+     col = "lightblue",
+     border = "white")
+```
+```{r}
+#Draft Placement Correlation
+numeric_qb <- qb_index[sapply(qb_index, is.numeric)]
+cor_table <- numeric_qb %>%
+  summarise(across(everything(),
+                   ~ cor(.x, numeric_qb$qb.num.picked,
+                         use = "pairwise.complete.obs"))) %>%
+  pivot_longer(everything(),
+               names_to = "variable",
+               values_to = "correlation") %>%
+  arrange(desc(abs(correlation)))
+
+cor_table
+```
+```{r}
+#Correlation Matrix
+cor_matrix <- qb_index %>%
+  select(where(is.numeric)) %>%     
+  select(-starts_with("nfl")) %>%   
+  cor(use = "complete.obs")   
+```
+```{r}
+#Numeric Data Summary
+qb_index_nozero <- qb_index %>%
+  filter(if_all(where(is.numeric), ~ .x != 0))
+summary_table <- qb_index_nozero %>%
+  select(where(is.numeric)) %>%
+  select(-starts_with("nfl")) %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value") %>%
+  group_by(variable) %>%
+  summarise(
+    min = min(value, na.rm = TRUE),
+    max = max(value, na.rm = TRUE),
+    mean = mean(value, na.rm = TRUE),
+    median = median(value, na.rm = TRUE),
+    sd = sd(value, na.rm = TRUE)
+  )
+```
